@@ -1,37 +1,73 @@
-# guest-components
+# Confidential Container Tools and Components 
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fconfidential-containers%2Fimage-rs.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fconfidential-containers%2Fimage-rs?ref=badge_shield)
 
-#### 介绍
 This repository includes tools and components for confidential container images.
 
-#### 软件架构
-软件架构说明
+## Components
 
+[Attestation Agent](attestation-agent)
+An agent for facilitating attestation protocols.
+Can be built as a library to run in a process-based enclave or built as a process that runs inside a confidential vm.
 
-#### 安装教程
+[image-rs](image-rs)
+Rust implementation of the container image management library.
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+[ocicrypt-rs](ocicrypt-rs)
+Rust implementation of the OCI image encryption library.
 
-#### 使用说明
+[api-server-rest](api-server-rest)
+CoCo Restful API server.
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+[confidential-data-hub](confidential-data-hub)
+Confidential Data Hub.
 
-#### 参与贡献
+[coco-keyprovider](attestation-agent/coco_keyprovider/)
+CoCo Keyprovider. Used to encrypt the container images.
 
-1.  Fork 本仓库
-2.  新建 Feat_xxx 分支
-3.  提交代码
-4.  新建 Pull Request
+## Tools
 
+[secret-cli](confidential-data-hub/hub/src/bin/secret_cli.rs)
+Utility for sealing and unsealing sealed secrets
 
-#### 特技
+[CDH Client](confidential-data-hub/hub/src/bin)
+A tool for exercising CDH endpoints
 
-1.  使用 Readme\_XXX.md 来支持不同的语言，例如 Readme\_en.md, Readme\_zh.md
-2.  Gitee 官方博客 [blog.gitee.com](https://blog.gitee.com)
-3.  你可以 [https://gitee.com/explore](https://gitee.com/explore) 这个地址来了解 Gitee 上的优秀开源项目
-4.  [GVP](https://gitee.com/gvp) 全称是 Gitee 最有价值开源项目，是综合评定出的优秀开源项目
-5.  Gitee 官方提供的使用手册 [https://gitee.com/help](https://gitee.com/help)
-6.  Gitee 封面人物是一档用来展示 Gitee 会员风采的栏目 [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
+[CDH Go Client](confidential-data-hub/golang)
+A Go tool for exercising CDH endpoints
+
+[CDH (One Shot)](confidential-data-hub/hub/src/bin/cdh-oneshot.rs)
+One Shot version of CDH
+
+[CoCo Keyprovider](attestation-agent/coco_keyprovider)
+Keyprovider endpoint for encrypting images
+
+## Build
+
+A `Makefile` is provided to quickly build Attestation Agent/Api Server Rest/Confidential Data Hub for a given platform.
+
+```shell
+make build TEE_PLATFORM=$(TEE_PLATFORM)
+make install DESTDIR=/usr/local/bin
+```
+
+The `TEE_PLATFORM` parameter can be
+- `none`: for tests with non-confidential guests
+- `all`: for all following platforms
+- `fs`: for platforms with encrypted root filesystems (i.e. s390x)
+- `tdx`: for Intel TDX
+- `az-tdx-vtpm`: for Intel TDX with Azure vTPM
+- `sev`: for AMD SEV(-ES)
+- `snp`: for AMD SEV-SNP
+- `amd`: for both AMD SEV(-ES) and AMD SEV-SNP
+- `az-snp-vtpm`: for AMD SEV-SNP with Azure vTPM
+- `se`: for IBM Secure Execution (SE)
+
+by default, `kbs`/`sev` as a resource provider will be built in Confidential Data Hub. If you do not want enable any
+default except for only builtin `offline-fs-kbc`, you can build with `NO_RESOURCE_PROVIDER` flag set to `true`.
+
+```shell
+make build TEE_PLATFORM=$(TEE_PLATFORM) NO_RESOURCE_PROVIDER=true
+```
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fconfidential-containers%2Fimage-rs.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fconfidential-containers%2Fimage-rs?ref=badge_large)
