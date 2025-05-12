@@ -52,6 +52,7 @@ impl<'a> PullClient<'a> {
         extra_root_certificates: Vec<String>,
     ) -> Result<PullClient<'a>> {
         let mut client_config = ClientConfig::default();
+        client_config.protocol = oci_client::client::ClientProtocol::Http;
         if let Some(no_proxy) = no_proxy {
             client_config.no_proxy = Some(no_proxy.to_string())
         }

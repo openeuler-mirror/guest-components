@@ -647,4 +647,43 @@ mod tests {
         // This confirms that the second image client reused the meta store and layers from the first image client
         assert!(!work_dir_2.path().join("layers").exists());
     }
+
+    #[tokio::test]
+    async fn test_pull_image_by_secgear() {
+        let work_dir = tempfile::tempdir().unwrap();
+        // replace with image url
+        let image = "9.82.33.13:5000/test-image:latest";
+        let mut image_client = ImageClient::new(work_dir.path().to_path_buf());
+        println!("work dir: {:?}", work_dir);
+
+        let bundle_dir = tempfile::tempdir().unwrap();
+        println!("bundle dir: {:?}", bundle_dir);
+
+        image_client
+            .pull_image(image, bundle_dir.path(), &None, &None)
+            .await
+            .unwrap();
+    }
+
+    #[tokio::test]
+    async fn test_pull_encrypted_image_by_secgear() {
+        let work_dir = tempfile::tempdir().unwrap();
+        // replace with image url
+        let image = "9.82.33.13:5000/encrypted_0511_annotated:latest";
+        let mut image_client = ImageClient::new(work_dir.path().to_path_buf());
+        println!("work dir: {:?}", work_dir);
+
+        let bundle_dir = tempfile::tempdir().unwrap();
+        println!("bundle dir: {:?}", bundle_dir);
+
+        image_client
+            .pull_image(
+                image,
+                bundle_dir.path(),
+                &None,
+                &Some("provider:secgear:127.0.0.1:8081"),
+            )
+            .await
+            .unwrap();
+    }
 }

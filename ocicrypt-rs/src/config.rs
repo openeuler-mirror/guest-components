@@ -75,6 +75,7 @@ pub struct KeyProviderAttrs {
     pub grpc: Option<String>,
     pub ttrpc: Option<String>,
     pub native: Option<String>,
+    pub secgear: Option<String>,
 }
 
 /// DecryptConfig wraps the Parameters map that holds the decryption key
@@ -425,6 +426,7 @@ mod tests {
             grpc: None,
             ttrpc: None,
             native: None,
+            secgear: None,
         };
         provider.insert(String::from("keyprovider1"), attrs);
 

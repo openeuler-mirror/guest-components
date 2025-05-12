@@ -15,6 +15,9 @@ use crate::utils::{self, CommandExecuter};
 #[cfg(feature = "keywrap-keyprovider-native")]
 mod native;
 
+#[cfg(feature = "keywrap-keyprovider-secgear")]
+mod secgear;
+
 #[derive(Debug)]
 enum OpKey {
     Wrap,
@@ -200,6 +203,35 @@ impl KeyProviderKeyWrapProtocolOutput {
         let handler = std::thread::spawn(move || {
             create_async_runtime()?.block_on(async {
                 native::decrypt_image_layer_annotation(&kbs, &kbc, &annotation)
+                    .await
+                    .map_err(|e| format!("{e:?}"))
+            })
+        });
+
+        match handler.join() {
+            Ok(Ok(v)) => Ok(KeyProviderKeyWrapProtocolOutput {
+                key_unwrap_results: Some(KeyUnwrapResults { opts_data: v }),
+                ..Default::default()
+            }),
+            Ok(Err(e)) => Err(anyhow!("keyprovider: retrieve opts_data failed: {e:?}")),
+            Err(e) => Err(anyhow!("keyprovider: retrieve opts_data failed: {e:?}")),
+        }
+    }
+
+    #[cfg(feature = "keywrap-keyprovider-secgear")]
+    fn from_secgear(annotation: &str, dc_config: &DecryptConfig) -> Result<Self> {
+        let secgear_aa_addr = if let Some(list) = dc_config.param.get("secgear") {
+            list.first()
+                .ok_or_else(|| anyhow!("keyprovider: empty secgear pair"))?
+        } else {
+            return Err(anyhow!("keyprovider: not supported attestation agent"));
+        };
+        let secgear_aa_addr = String::from_utf8(secgear_aa_addr.to_vec())?;
+        let key_path = annotation.to_string();
+
+        let handler = std::thread::spawn(move || {
+            create_async_runtime()?.block_on(async {
+                secgear::decrypt_image_layer_annotation(&secgear_aa_addr, &key_path)
                     .await
                     .map_err(|e| format!("{e:?}"))
             })
@@ -431,6 +463,25 @@ impl KeyProviderKeyWrapper {
             })
         }
     }
+
+    fn unwrap_key_secgear(
+        &self,
+        _dc_config: &DecryptConfig,
+        _json_string: &[u8],
+    ) -> Result<KeyProviderKeyWrapProtocolOutput> {
+        #[cfg(not(feature = "keywrap-keyprovider-secgear"))]
+        return Err(anyhow!("keyprovider: no support of keyprovider-secgear"));
+        #[cfg(feature = "keywrap-keyprovider-secgear")]
+        {
+            let content = String::from_utf8(_json_string.to_vec())?;
+            KeyProviderKeyWrapProtocolOutput::from_secgear(&content, _dc_config).map_err(|e| {
+                anyhow!(
+                    "keyprovider: error from crate provider for {} operation: {e:?}",
+                    OpKey::Unwrap,
+                )
+            })
+        }
+    }
 }
 
 impl KeyWrapper for KeyProviderKeyWrapper {
@@ -507,6 +558,8 @@ impl KeyWrapper for KeyProviderKeyWrapper {
             self.unwrap_key_ttrpc(_serialized_input, ttrpc)?
         } else if let Some(_native) = self.attrs.native.as_ref() {
             self.unwrap_key_native(dc_config, json_string)?
+        } else if let Some(_) = self.attrs.secgear.as_ref() {
+            self.unwrap_key_secgear(dc_config, json_string)?
         } else {
             return Err(anyhow!(
                 "keyprovider: invalid configuration, both grpc and runner are NULL"
@@ -534,7 +587,8 @@ impl KeyWrapper for KeyProviderKeyWrapper {
 
 #[cfg(any(
     feature = "keywrap-keyprovider-grpc",
-    feature = "keywrap-keyprovider-native"
+    feature = "keywrap-keyprovider-native",
+    feature = "keywrap-keyprovider-secgear"
 ))]
 fn create_async_runtime() -> std::result::Result<tokio::runtime::Runtime, String> {
     match tokio::runtime::Builder::new_current_thread()
@@ -933,6 +987,7 @@ mod tests {
             grpc: None,
             ttrpc: None,
             native: None,
+            secgear: None,
         };
         provider.insert(String::from("provider"), attrs.clone());
         let mut keyprovider_key_wrapper = KeyProviderKeyWrapper::new(
@@ -973,6 +1028,7 @@ mod tests {
             grpc: None,
             ttrpc: None,
             native: None,
+            secgear: None,
         };
         provider.insert(String::from("provider"), attrs.clone());
         keyprovider_key_wrapper = KeyProviderKeyWrapper::new(
@@ -1004,6 +1060,7 @@ mod tests {
             grpc: None,
             ttrpc: None,
             native: None,
+            secgear: None,
         };
         provider.insert(String::from("provider"), attrs.clone());
         let keyprovider_key_wrapper = KeyProviderKeyWrapper::new(
@@ -1038,6 +1095,7 @@ mod tests {
             grpc: None,
             ttrpc: None,
             native: None,
+            secgear: None,
         };
         provider.insert(String::from("provider"), attrs.clone());
         let keyprovider_key_wrapper = KeyProviderKeyWrapper::new(
@@ -1090,6 +1148,7 @@ mod tests {
             grpc: Some("tcp://127.0.0.1:8990".to_string()),
             ttrpc: None,
             native: None,
+            secgear: None,
         };
         provider.insert(String::from("provider"), attrs.clone());
         let keyprovider_key_wrapper =
@@ -1141,6 +1200,7 @@ mod tests {
             grpc: Some("http://127.0.0.1:8991".to_string()),
             ttrpc: None,
             native: None,
+            secgear: None,
         };
         provider.insert(String::from("provider"), attrs.clone());
         let keyprovider_key_wrapper =
@@ -1192,6 +1252,7 @@ mod tests {
             grpc: None,
             ttrpc: Some(self::ttrpc_test::SOCK_ADDR.to_string()),
             native: None,
+            secgear: None,
         };
         provider.insert(String::from("provider"), attrs.clone());
         let keyprovider_key_wrapper =
@@ -1233,6 +1294,7 @@ mod tests {
             grpc: None,
             ttrpc: None,
             native: Some("attestation-agent".to_string()),
+            secgear: None,
         };
         provider.insert(String::from("provider"), attrs.clone());
         let keyprovider_key_wrapper =
@@ -1271,6 +1333,7 @@ mod tests {
             grpc: None,
             ttrpc: None,
             native: Some("attestation-agent".to_string()),
+            secgear: None,
         };
         provider.insert(String::from("provider"), attrs.clone());
         let keyprovider_key_wrapper =
