@@ -33,6 +33,7 @@ tokio = { workspace = true, features = ["rt-multi-thread"], optional = true }
 tonic = { workspace = true, optional = true }
 ttrpc = { workspace = true, features = ["async"], optional = true }
 zeroize = { workspace = true, optional = true }
+reqwest = { workspace = true, optional = true }
 
 [build-dependencies]
 tonic-build = { workspace = true, optional = true }
@@ -63,6 +64,9 @@ keywrap-keyprovider-ttrpc = ["keywrap-keyprovider", "protobuf", "async-trait", "
 
 # Use KBC to request KEK
 keywrap-keyprovider-native = ["keywrap-keyprovider", "tokio/net", "tokio/sync", "crypto/rust-crypto", "zeroize", "kbc/cc_kbc", "kbc/rust-crypto", "kbc/sample_kbc", "kbc/sgx-attester", "resource_uri"]
+
+# Use secgear to get decrypt key
+keywrap-keyprovider-secgear = ["keywrap-keyprovider", "async-trait", "tokio", "tokio/sync", "reqwest", "reqwest/json"]
 
 gen-proto-grpc = ["tonic-build"]
 gen-proto-ttrpc = ["ttrpc-codegen"]

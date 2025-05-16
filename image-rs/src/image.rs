@@ -647,4 +647,45 @@ mod tests {
         // This confirms that the second image client reused the meta store and layers from the first image client
         assert!(!work_dir_2.path().join("layers").exists());
     }
+
+    #[ignore]
+    #[tokio::test]
+    async fn test_pull_image_by_secgear() {
+        let work_dir = tempfile::tempdir().unwrap();
+        // replace with image url
+        let image = "hub.oepkgs.net/library/busybox_aarch64:latest";
+        let mut image_client = ImageClient::new(work_dir.path().to_path_buf());
+        println!("work dir: {:?}", work_dir);
+
+        let bundle_dir = tempfile::tempdir().unwrap();
+        println!("bundle dir: {:?}", bundle_dir);
+
+        image_client
+            .pull_image(image, bundle_dir.path(), &None, &None)
+            .await
+            .unwrap();
+    }
+
+    #[ignore]
+    #[tokio::test]
+    async fn test_pull_encrypted_image_by_secgear() {
+        let work_dir = tempfile::tempdir().unwrap();
+        // replace with image url
+        let image = "hub.oepkgs.net/isulad/busybox-encrypted:latest";
+        let mut image_client = ImageClient::new(work_dir.path().to_path_buf());
+        println!("work dir: {:?}", work_dir);
+
+        let bundle_dir = tempfile::tempdir().unwrap();
+        println!("bundle dir: {:?}", bundle_dir);
+
+        image_client
+            .pull_image(
+                image,
+                bundle_dir.path(),
+                &None,
+                &Some("provider:secgear:127.0.0.1:8081"),
+            )
+            .await
+            .unwrap();
+    }
 }

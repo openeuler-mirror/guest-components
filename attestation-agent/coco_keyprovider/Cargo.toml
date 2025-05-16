@@ -26,6 +26,7 @@ strum.workspace = true
 tokio = { workspace = true, features = ["fs", "rt-multi-thread"] }
 tonic.workspace = true
 uuid = { workspace = true, features = ["fast-rng", "v4"] }
+aes.workspace = true
 
 [build-dependencies]
 tonic-build.workspace = true

@@ -103,7 +103,7 @@ async fn generate_key_parameters(input_params: &InputParams) -> Result<(Vec<u8>,
             info!("Use sample keyprovider (HARDCODED KEY and IV)");
             Ok((
                 crypto::HARDCODED_KEY.to_vec(),
-                [0; 12].to_vec(),
+                [0; 16].to_vec(),
                 HARD_CODED_KEYID.into(),
             ))
         }
@@ -112,7 +112,7 @@ async fn generate_key_parameters(input_params: &InputParams) -> Result<(Vec<u8>,
             Some(kpath) => {
                 debug!("use given key from: {kpath}");
                 let key = fs::read(kpath).await.context("read Key file failed")?;
-                let mut iv = [0; 12];
+                let mut iv = [0; 16];
                 rand::rngs::OsRng.try_fill_bytes(&mut iv)?;
                 let kid = match &input_params.keyid {
                     Some(kid) => kid.to_string(),
@@ -128,7 +128,7 @@ async fn generate_key_parameters(input_params: &InputParams) -> Result<(Vec<u8>,
             None => {
                 debug!("no key input, generate a random key");
 
-                let mut iv = [0; 12];
+                let mut iv = [0; 16];
                 rand::rngs::OsRng.try_fill_bytes(&mut iv)?;
 
                 let mut key = [0; 32];
@@ -198,6 +198,8 @@ pub async fn enc_optsdata_gen_anno(
     let (kbs_addr, k_path) = normalize_path(&kid)?;
 
     let algorithm = input_params.algorithm;
+    let opts_s = String::from_utf8_lossy(optsdata);
+    println!("*************Received optsdata: {}", opts_s);
     let encrypt_optsdata = crypto::encrypt(optsdata, &key, &iv, &algorithm)
         .map_err(|e| anyhow!("Encrypt failed: {:?}", e))?;
 

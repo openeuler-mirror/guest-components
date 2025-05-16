@@ -5,9 +5,11 @@
 
 use std::fmt::Display;
 
-use aes_gcm::{aead::Aead, aes::Aes256, Aes256Gcm, Key, Nonce};
+use aes_gcm::{aead::Aead, aes::Aes256, AesGcm, Key, Nonce};
 use anyhow::*;
 use strum::EnumString;
+
+pub type Aes256Gcm = AesGcm<Aes256, aes::cipher::consts::U16>;
 
 /// Only for sample
 pub const HARDCODED_KEY: &[u8] = &[
