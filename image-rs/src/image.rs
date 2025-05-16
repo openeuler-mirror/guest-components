@@ -648,11 +648,12 @@ mod tests {
         assert!(!work_dir_2.path().join("layers").exists());
     }
 
+    #[ignore]
     #[tokio::test]
     async fn test_pull_image_by_secgear() {
         let work_dir = tempfile::tempdir().unwrap();
         // replace with image url
-        let image = "9.82.33.13:5000/test-image:latest";
+        let image = "hub.oepkgs.net/library/busybox_aarch64:latest";
         let mut image_client = ImageClient::new(work_dir.path().to_path_buf());
         println!("work dir: {:?}", work_dir);
 
@@ -665,11 +666,12 @@ mod tests {
             .unwrap();
     }
 
+    #[ignore]
     #[tokio::test]
     async fn test_pull_encrypted_image_by_secgear() {
         let work_dir = tempfile::tempdir().unwrap();
         // replace with image url
-        let image = "9.82.33.13:5000/encrypted_0511_annotated:latest";
+        let image = "hub.oepkgs.net/isulad/busybox-encrypted:latest";
         let mut image_client = ImageClient::new(work_dir.path().to_path_buf());
         println!("work dir: {:?}", work_dir);
 

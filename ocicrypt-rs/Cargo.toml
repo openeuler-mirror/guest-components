@@ -68,6 +68,5 @@ keywrap-keyprovider-native = ["keywrap-keyprovider", "tokio/net", "tokio/sync", 
 # Use secgear to get decrypt key
 keywrap-keyprovider-secgear = ["keywrap-keyprovider", "async-trait", "tokio", "tokio/sync", "reqwest", "reqwest/json"]
 
-
 gen-proto-grpc = ["tonic-build"]
 gen-proto-ttrpc = ["ttrpc-codegen"]
